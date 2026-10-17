@@ -1,0 +1,773 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Settle Resolution Desk</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout concept: a two-pane desk. The customer's chat sits on the left, the back-office view of the
+   same case on the right, and a running ledger of money saved runs underneath. */
+:root {
+  --bg: #EDF0F3;
+  --surface: #FFFFFF;
+  --ink: #16202B;
+  --muted: #5A6775;
+  --line: #D5DBE2;
+  --accent: #F2B01E;
+  --accent-ink: #16202B;
+  --accent-text: #8A5700;
+  --bubble-c: #16202B;
+  --bubble-c-ink: #FFFFFF;
+  --good: #1B7F4B;
+  --good-bg: #E1F2E8;
+  --warn: #A35500;
+  --warn-bg: #FBEBD3;
+  --stop: #B3261E;
+  --stop-bg: #FBE2E0;
+  --f-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --f-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E141A;
+    --surface: #17202A;
+    --ink: #E8EDF2;
+    --muted: #93A0AE;
+    --line: #2A3644;
+    --accent: #F2B01E;
+    --accent-ink: #16202B;
+    --accent-text: #F2B01E;
+    --bubble-c: #2B3D55;
+    --bubble-c-ink: #E8EDF2;
+    --good: #4CC38A;
+    --good-bg: #12281D;
+    --warn: #F0A04B;
+    --warn-bg: #33220E;
+    --stop: #FF8A80;
+    --stop-bg: #34171A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E141A;
+  --surface: #17202A;
+  --ink: #E8EDF2;
+  --muted: #93A0AE;
+  --line: #2A3644;
+  --accent: #F2B01E;
+  --accent-ink: #16202B;
+  --accent-text: #F2B01E;
+  --bubble-c: #2B3D55;
+  --bubble-c-ink: #E8EDF2;
+  --good: #4CC38A;
+  --good-bg: #12281D;
+  --warn: #F0A04B;
+  --warn-bg: #33220E;
+  --stop: #FF8A80;
+  --stop-bg: #34171A;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.5;
+  padding-block: 20px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1, h2, h3 { font-family: var(--f-display); margin: 0; text-wrap: balance; line-height: 1.2; }
+p { margin: 0; }
+.mono { font-family: var(--f-mono); }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 24px; }
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand h1 { font-size: 26px; letter-spacing: -0.01em; }
+.brand .mark { width: 12px; height: 12px; background: var(--accent); display: inline-block; transform: translateY(1px); }
+.top .lede { color: var(--muted); max-width: 62ch; }
+.store { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+
+.grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 16px; align-items: start; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.panel.wide { grid-column: 1 / -1; }
+.panel-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.panel-head h2 { font-size: 17px; }
+.eyebrow { font-family: var(--f-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+
+label.field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+select, input[type="text"], input[type="number"] {
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; width: 100%; min-width: 0; color: var(--ink);
+}
+
+.order-card { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px 16px; margin: 0; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 4px; }
+.order-card div { min-width: 0; }
+.order-card dt { font-family: var(--f-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.order-card dd { margin: 0; font-size: 13.5px; overflow-wrap: anywhere; }
+
+#log { height: 330px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 4px 2px; }
+.msg { max-width: 88%; padding: 9px 12px; border-radius: 4px; font-size: 14.5px; display: flex; flex-direction: column; gap: 6px; overflow-wrap: anywhere; }
+.msg.customer { align-self: flex-end; background: var(--bubble-c); color: var(--bubble-c-ink); }
+.msg.settle { align-self: flex-start; background: var(--bg); border: 1px solid var(--line); }
+.msg.typing { align-self: flex-start; color: var(--muted); font-style: italic; background: none; padding-inline: 2px; }
+.photo { font-family: var(--f-mono); font-size: 11px; border: 1px dashed currentColor; padding: 2px 6px; align-self: flex-start; opacity: 0.85; }
+
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chips .eyebrow { margin-right: 2px; }
+.chip { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; text-align: left; }
+.chip:hover { border-color: var(--ink); }
+.chip.offer { border-color: var(--accent-text); }
+
+form.composer { display: flex; flex-wrap: wrap; gap: 8px; }
+form.composer input[type="text"] { flex: 1 1 200px; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: 8px 14px; cursor: pointer; font-weight: 500; }
+.btn:hover { border-color: var(--ink); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn.primary:hover { filter: brightness(0.96); }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+details.policy { border: 1px solid var(--line); border-radius: 4px; padding: 8px 12px; }
+details.policy summary { cursor: pointer; font-weight: 500; font-size: 14px; }
+.policy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px 14px; margin-top: 10px; }
+.hint { font-size: 12.5px; color: var(--muted); }
+
+.case-head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.tag { font-family: var(--f-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 8px; border-radius: 3px; background: var(--bg); border: 1px solid var(--line); }
+.tag.resolved, .tag.ok { background: var(--good-bg); color: var(--good); border-color: transparent; }
+.tag.escalated, .tag.stop { background: var(--stop-bg); color: var(--stop); border-color: transparent; }
+.tag.waiting, .tag.warn { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+.decision { font-size: 22px; }
+.checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.checks li { display: grid; grid-template-columns: 64px 108px minmax(0, 1fr); gap: 4px 10px; align-items: baseline; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.checks li:first-child { border-top: 0; }
+.checks .lbl { font-weight: 600; }
+.checks .det { color: var(--ink); overflow-wrap: anywhere; }
+.checks .tag { justify-self: start; }
+.note { font-size: 12.5px; color: var(--muted); border-left: 3px solid var(--line); padding-left: 10px; }
+
+.compare { display: flex; flex-direction: column; gap: 8px; }
+.cmp-row { display: grid; grid-template-columns: 150px minmax(0, 1fr) 72px; gap: 10px; align-items: center; font-size: 13.5px; }
+.bar { height: 12px; background: var(--bg); border: 1px solid var(--line); }
+.bar i { display: block; height: 100%; }
+.bar i.base { background: var(--muted); opacity: 0.55; }
+.bar i.settle { background: var(--accent); }
+.cmp-row .val { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.lines { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 16px; font-size: 13px; }
+.lines dt { color: var(--muted); }
+.lines dd { margin: 0; text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.lines dt.total, .lines dd.total { font-weight: 600; color: var(--ink); border-top: 1px solid var(--line); padding-top: 4px; margin-top: 2px; }
+.empty { border: 1px dashed var(--line); border-radius: 4px; padding: 20px 16px; color: var(--muted); }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+.stat { display: flex; flex-direction: column; gap: 2px; padding-left: 12px; border-left: 3px solid var(--line); }
+.stat.key { border-left-color: var(--accent); }
+.stat .n { font-family: var(--f-display); font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stat .l { font-size: 12.5px; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 13.5px; }
+th { text-align: left; font-family: var(--f-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 500; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--line); }
+td { padding: 8px 10px 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.num, th.num { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; padding-right: 0; padding-left: 10px; }
+
+@media (max-width: 860px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .checks li { grid-template-columns: 64px minmax(0, 1fr); }
+  .checks li .det { grid-column: 1 / -1; }
+  .cmp-row { grid-template-columns: minmax(0, 1fr) 72px; }
+  .cmp-row .bar { grid-column: 1 / -1; grid-row: 2; }
+  #log { height: 300px; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="brand"><span class="mark" aria-hidden="true"></span><h1>Settle</h1></div>
+      <p class="lede">Pick an order, write as the customer, and watch the same case from the back office. Settle picks the cheapest fair fix and shows what it saved against refunding everything.</p>
+    </div>
+    <p class="store">Sample store: Northloop Outfitters</p>
+  </header>
+
+  <details class="policy">
+    <summary>Store policy (this is what each retailer configures)</summary>
+    <div class="policy-grid">
+      <label class="field" for="p-window">Return window, days<input type="number" id="p-window" min="0" max="365" inputmode="numeric"></label>
+      <label class="field" for="p-keep">Keep-it limit, $<input type="number" id="p-keep" min="0" max="500" inputmode="numeric"></label>
+      <label class="field" for="p-esc">Human approval above, $<input type="number" id="p-esc" min="0" max="5000" inputmode="numeric"></label>
+      <label class="field" for="p-bonus">Store credit bonus, %<input type="number" id="p-bonus" min="0" max="50" inputmode="numeric"></label>
+    </div>
+    <p class="hint" style="margin-top:10px">Changes apply to the next message. Below the keep-it limit, shipping an item back costs more than it is worth, so Settle offers a partial refund instead of a return.</p>
+  </details>
+
+  <main class="grid">
+    <section class="panel" aria-labelledby="h-chat">
+      <div class="panel-head"><h2 id="h-chat">Customer chat</h2><span class="eyebrow">What the customer sees</span></div>
+      <label class="field" for="order">Order
+        <select id="order"></select>
+      </label>
+      <dl class="order-card" id="order-card"></dl>
+      <div id="log" role="log" aria-live="polite" aria-label="Conversation"></div>
+      <div class="chips" id="offers" aria-label="Reply options"></div>
+      <div class="chips" id="samples"></div>
+      <form class="composer" id="composer" autocomplete="off">
+        <input type="text" id="msg" placeholder="Write as the customer" aria-label="Message">
+        <button type="button" class="btn" id="photoBtn" aria-pressed="false">Attach photo</button>
+        <button type="submit" class="btn primary" id="sendBtn">Send</button>
+      </form>
+    </section>
+
+    <section class="panel" aria-labelledby="h-back">
+      <div class="panel-head"><h2 id="h-back">Back office</h2><span class="eyebrow">How Settle decided</span></div>
+      <div id="case"></div>
+    </section>
+
+    <section class="panel wide" aria-labelledby="h-ledger">
+      <div class="panel-head">
+        <h2 id="h-ledger">Money saved vs. refunding everything</h2>
+        <button type="button" class="btn" id="resetBtn">Reset ledger</button>
+      </div>
+      <div id="ledger"></div>
+    </section>
+  </main>
+</div>
+
+<script>
+//ENGINE_START
+const DEFAULT_POLICY = {
+  returnWindowDays: 30,
+  warrantyDays: 90,
+  keepBelow: 30,
+  escalateAbove: 250,
+  creditBonusPct: 10,
+  goodwillCredit: 10,
+  returnLabel: 9,
+  handling: 4,
+  shipOut: 6,
+  repeatClaimLimit: 3,
+  keepItRefundPct: 40,
+  returnDefectiveAbove: 100,
+  discountPct: 15
+};
+const RECOVER = { changeOfMind: 0.7, exchange: 0.8, defective: 0.3, wrongItem: 1.0 };
+
+const ORDERS = [
+  { id:'4821', item:'Trailhead Insulated Bottle', price:38,  cogs:13,  status:'delivered', days:6,  late:0, eta:'',        note:'', proof:'photo',  customer:'Maya R.',   prior:0, sample:'The lid cracked and the bottle leaks.' },
+  { id:'4822', item:'Ridgeline Daypack',          price:89,  cogs:34,  status:'delivered', days:12, late:0, eta:'',        note:'', proof:'photo',  customer:'Dev P.',    prior:0, sample:'Tracking says delivered but I never got my package.' },
+  { id:'4823', item:'Cloudstep Trail Runners',    price:135, cogs:52,  status:'delivered', days:22, late:0, eta:'',        note:'', proof:'signed', customer:'Priya S.',  prior:1, sample:'I changed my mind and want a refund.' },
+  { id:'4824', item:'Merino Beanie',              price:24,  cogs:8,   status:'delivered', days:4,  late:0, eta:'',        note:'', proof:'photo',  customer:'Sam T.',    prior:0, sample:"Not what I expected. I'd like my money back." },
+  { id:'4825', item:'Summit Rain Shell',          price:210, cogs:78,  status:'transit',   days:0,  late:2, eta:'Tuesday', note:'Delayed at regional hub', proof:'none', customer:'Alex W.', prior:0, sample:'Where is my order? It was supposed to be here by now.' },
+  { id:'4826', item:'Basecamp 2-Person Tent',     price:320, cogs:122, status:'delivered', days:9,  late:0, eta:'',        note:'', proof:'signed', customer:'Chris L.',  prior:0, sample:'A pole snapped on the first night.' },
+  { id:'4827', item:'Trail Sock 3-Pack',          price:22,  cogs:7,   status:'delivered', days:3,  late:0, eta:'',        note:'', proof:'none',   customer:'Jordan K.', prior:3, sample:'I never received this package.' },
+  { id:'4828', item:'Ember Camp Mug',             price:18,  cogs:6,   status:'delivered', days:45, late:0, eta:'',        note:'', proof:'photo',  customer:'Lena M.',   prior:0, sample:"I'd like to return this." },
+  { id:'4829', item:'Merino Base Layer',          price:68,  cogs:25,  status:'delivered', days:5,  late:0, eta:'',        note:'', proof:'signed', customer:'Omar H.',   prior:1, sample:"It's too small. Can I swap it for a large?" }
+];
+
+const INTENTS = [
+  { id:'legal',        label:'Legal or chargeback threat', re:/\b(lawyer|attorney|sue|suing|chargeback|charge back|dispute (this |it )?with my bank|bbb|small claims)\b/i },
+  { id:'not_received', label:'Package not received',       re:/\b(never (arrived|received|got|showed up)|didn'?t (arrive|receive|get)|did not (arrive|receive)|not received|missing package|stolen|(says|shows|marked|marked as) delivered)\b/i },
+  { id:'wrong_item',   label:'Wrong item sent',            re:/\b(wrong (item|product|color|colour|one)|not what i ordered)\b/i },
+  { id:'defective',    label:'Defective or damaged',       re:/\b(broken|broke|defect\w*|damaged|cracked|crack|doesn'?t work|stopped working|won'?t (turn on|work|close|zip)|leak\w*|torn|tore|ripped|snapped|faulty|malfunction\w*|fell apart|falling apart|came apart)\b/i },
+  { id:'exchange',     label:'Size exchange',              re:/\b(exchange|swap|doesn'?t fit|too (small|big|large|tight|loose|short|long)|wrong size|different size|size (up|down)|bigger size|smaller size)\b/i },
+  { id:'return',       label:'Return or refund',           re:/\b(refund|return|money back|changed my mind|change of mind|(don'?t|do not|didn'?t) (want|like)|not what i expected|cancel|send (it )?back)\b/i },
+  { id:'status',       label:'Order status',               re:/\b(where is|where's|tracking|track|still waiting|when will|taking forever|late|delayed|delay|shipping status|eta|hasn'?t arrived|not arrived|supposed to be here)\b/i }
+];
+const ANGRY = /\b(terrible|worst|awful|unacceptable|ridiculous|furious|disgusting|rip.?off|useless)\b/i;
+
+function detectIntent(text) {
+  for (const it of INTENTS) {
+    const m = text.match(it.re);
+    if (m) return { id: it.id, label: it.label, hit: m[0] };
+  }
+  return { id: 'general', label: 'Unclear request', hit: '' };
+}
+
+function usd(n) {
+  const s = Math.abs(n).toFixed(2).replace(/\.00$/, '');
+  return (n < 0 ? '-' : '') + '$' + s;
+}
+function r2(n) { return Math.round(n * 100) / 100; }
+
+function ledger(m, o) {
+  const cr = o.cogs / o.price;
+  const rows = [
+    ['Cash refunded', m.refund || 0],
+    ['Store credit (valued at cost)', (m.credit || 0) * cr],
+    ['Replacement unit (cost)', (m.units || 0) * o.cogs],
+    ['Outbound shipping', m.ship || 0],
+    ['Return label', m.label || 0],
+    ['Inspection and restock', m.handling || 0],
+    ['Discount code, if used', m.discount || 0],
+    ['Stock recovered (at cost)', -(m.recovered || 0)]
+  ].filter(r => r[1] !== 0).map(r => ({ label: r[0], amount: r2(r[1]) }));
+  const cost = r2(rows.reduce((s, r) => s + r.amount, 0));
+  return { lines: rows, cost: cost };
+}
+
+function assessRisk(o, eff, p) {
+  let score = 0;
+  const signals = [];
+  if (o.prior >= p.repeatClaimLimit) {
+    score += 3; signals.push(o.prior + ' claims in the last 90 days (limit ' + p.repeatClaimLimit + ')');
+  } else if (o.prior > 0 && o.prior === p.repeatClaimLimit - 1) {
+    score += 1; signals.push(o.prior + ' earlier claims in the last 90 days');
+  }
+  if (eff === 'not_received' && o.status === 'delivered') {
+    if (o.proof === 'none') { score += 1; signals.push('Carrier shows delivered, no photo or signature'); }
+    else { score += 2; signals.push('Carrier shows delivered with proof on file'); }
+  }
+  const level = score >= 3 ? 'high' : score >= 2 ? 'medium' : 'low';
+  return { score: score, level: level, signals: signals };
+}
+
+const PROOF_NOTE = {
+  photo: 'the carrier logged a photo of the parcel at your door',
+  signed: 'the carrier logged a signature',
+  none: 'the carrier logged no photo or signature'
+};
+function daysAgo(n) { return n === 1 ? '1 day ago' : n + ' days ago'; }
+
+function evaluate(o, text, opts, p) {
+  opts = opts || {};
+  const photo = !!opts.photo;
+  const intent = detectIntent(text);
+  const angry = ANGRY.test(text);
+  const trace = [];
+  const add = (label, detail, level) => trace.push({ label: label, detail: detail, level: level || 'ok' });
+  const sorry = angry ? "I'm really sorry for the frustration. " : '';
+  const inTransit = o.status === 'transit';
+  const first = o.customer.split(' ')[0];
+  let eff = intent.id;
+
+  add('Request', intent.label + (intent.hit ? ' (matched “' + intent.hit + '”)' : ''), eff === 'general' ? 'warn' : 'ok');
+  if (angry) add('Tone', 'Frustrated language detected, so the reply opens with an apology', 'warn');
+  if (inTransit && eff !== 'status' && eff !== 'legal' && eff !== 'general') {
+    add('Order state', 'Not delivered yet, so this is handled as a shipping question', 'ok');
+    eff = 'status';
+  }
+
+  const risk = assessRisk(o, eff, p);
+  add('Risk', risk.level + (risk.signals.length ? ': ' + risk.signals.join('; ') : ': no signals'),
+      risk.level === 'high' ? 'stop' : risk.level === 'medium' ? 'warn' : 'ok');
+
+  const base = { intent: intent, risk: risk, trace: trace, offers: null, money: null, needsPhoto: false };
+  const res = x => Object.assign({}, base, x);
+  const mon = (m, baseline) => { const l = ledger(m, o); return { cost: l.cost, lines: l.lines, baseline: baseline }; };
+  const moneyIntents = ['not_received', 'wrong_item', 'defective', 'exchange', 'return'];
+
+  if (eff === 'legal') {
+    add('Policy', 'Legal or chargeback language. Automation does not decide these cases', 'stop');
+    return res({ outcome: 'escalated', action: 'Sent to a person, priority',
+      msg: sorry + "I'm sorry this has gone this far. I've passed your case to a senior team member along with the full history. They'll contact you within one business day, so you won't need to repeat anything." });
+  }
+
+  if (eff === 'general') {
+    add('Policy', 'Not enough to act on, so Settle asks one clarifying question', 'warn');
+    return res({ outcome: 'waiting', action: 'Asked a clarifying question',
+      msg: sorry + 'Thanks for reaching out, ' + first + '. Could you tell me a bit more? For example: is it about where your order is, an item that arrived damaged or not working, or a return or exchange?' });
+  }
+
+  if (risk.level === 'high' && moneyIntents.indexOf(eff) >= 0) {
+    add('Policy', 'High risk, so a person reviews before any money or stock moves', 'stop');
+    return res({ outcome: 'escalated', action: 'Held for human review',
+      msg: sorry + "Thanks for letting us know. I want to get this right, so I've asked a teammate to take a look at your order. They'll follow up within one business day and may ask for a short statement or a photo. There's nothing else you need to do right now." });
+  }
+
+  if (eff === 'status') {
+    if (inTransit) {
+      add('Shipping', 'Carrier status: ' + o.note + (o.late > 0 ? ', ' + o.late + ' days past the promised date' : ''), o.late > 0 ? 'warn' : 'ok');
+      if (o.late >= 7) {
+        add('Policy', 'A week or more late: treat as lost and reship', 'ok');
+        return res({ outcome: 'resolved', action: 'Replacement shipped, order likely lost',
+          money: mon({ units: 1, ship: p.shipOut }, o.price),
+          msg: sorry + 'I’m sorry, your ' + o.item + ' looks lost in transit. I’ve shipped a replacement today and you’ll get a new tracking number within 24 hours.' });
+      }
+      if (o.late >= 2) {
+        add('Policy', 'Two or more days late: tracking plus a ' + usd(p.goodwillCredit) + ' goodwill credit', 'ok');
+        return res({ outcome: 'resolved', action: 'Tracking shared with ' + usd(p.goodwillCredit) + ' credit',
+          money: mon({ credit: p.goodwillCredit }, o.price),
+          msg: sorry + 'Sorry about the delay, ' + first + '. Your ' + o.item + ' is stuck at a regional hub and is now expected ' + o.eta + '. I’ve added a ' + usd(p.goodwillCredit) + ' credit to your account for the wait.' });
+      }
+      add('Policy', 'On schedule or barely late: share tracking, no payout', 'ok');
+      return res({ outcome: 'resolved', action: 'Tracking shared',
+        money: mon({}, o.late > 0 ? o.price : 0),
+        msg: sorry + 'Your ' + o.item + ' is on its way. Carrier status: ' + (o.note || 'in transit') + '. Expected ' + (o.eta || 'soon') + '.' });
+    }
+    add('Shipping', 'Delivered ' + daysAgo(o.days) + '; ' + PROOF_NOTE[o.proof], 'ok');
+    return res({ outcome: 'resolved', action: 'Delivery details shared',
+      money: mon({}, 0),
+      msg: sorry + 'Tracking shows your ' + o.item + ' was delivered ' + daysAgo(o.days) + ', and ' + PROOF_NOTE[o.proof] + '. If you can’t find it, tell me and I’ll open a claim.' });
+  }
+
+  const escalateHigh = why => {
+    add('Policy', 'Order is ' + usd(o.price) + ', above the ' + usd(p.escalateAbove) + ' approval limit', 'stop');
+    return res({ outcome: 'escalated', action: 'Sent to a person: high-value order',
+      msg: sorry + 'Thanks, ' + first + '. Because this order is higher value, a team member needs to approve the fix. I’ve sent them everything' + (why ? ' including ' + why : '') + ', and they’ll reply within one business day.' });
+  };
+
+  if (eff === 'not_received') {
+    if (o.price > p.escalateAbove) return escalateHigh('');
+    if (o.proof !== 'none') {
+      add('Evidence', 'Delivered ' + daysAgo(o.days) + '; ' + PROOF_NOTE[o.proof], 'warn');
+      add('Policy', 'Open a carrier trace and hold the replacement for 3 business days', 'ok');
+      return res({ outcome: 'waiting', action: 'Carrier trace opened',
+        msg: sorry + 'Thanks for flagging this. Tracking shows it was delivered ' + daysAgo(o.days) + ', and ' + PROOF_NOTE[o.proof] + '. Could you check with others in your household and around your entrance? I’ve opened a trace with the carrier. If it hasn’t turned up in 3 business days, I’ll send a replacement automatically.' });
+    }
+    add('Evidence', 'Delivered ' + daysAgo(o.days) + '; ' + PROOF_NOTE.none, 'warn');
+    add('Policy', 'First claim, low risk, no proof of delivery: reship now', 'ok');
+    return res({ outcome: 'resolved', action: 'Replacement shipped',
+      money: mon({ units: 1, ship: p.shipOut }, o.price),
+      msg: sorry + 'I’m sorry it didn’t reach you. Since there’s no delivery proof on file, I’ve shipped a replacement today. You’ll get tracking within 24 hours.' });
+  }
+
+  if (eff === 'wrong_item') {
+    if (o.price > p.escalateAbove) return escalateHigh('');
+    const keep = o.price < p.keepBelow;
+    add('Fault', 'Fulfilment error on our side, so the customer pays nothing', 'ok');
+    add('Policy', keep ? 'Under ' + usd(p.keepBelow) + ': send the right item, no return needed' : 'Send the right item now with a prepaid label for the wrong one', 'ok');
+    return res({ outcome: 'resolved', action: keep ? 'Correct item shipped, keep the wrong one' : 'Correct item shipped with return label',
+      money: mon({ units: 1, ship: p.shipOut, label: keep ? 0 : p.returnLabel, handling: keep ? 0 : p.handling, recovered: keep ? 0 : o.cogs * RECOVER.wrongItem }, o.price),
+      msg: sorry + 'That’s our mistake, and I’m sorry. The correct ' + o.item + ' ships today. ' + (keep ? 'Please keep the one we sent by mistake.' : 'A prepaid return label for the wrong one is in your email.') });
+  }
+
+  if (eff === 'defective') {
+    if (!photo) {
+      add('Evidence', 'No photo yet. A photo is required before a defect claim is approved', 'warn');
+      return res({ outcome: 'waiting', action: 'Photo requested', needsPhoto: true,
+        msg: sorry + 'I’m sorry your ' + o.item + ' isn’t right, ' + first + '. Could you attach a quick photo of the problem? Tap “Attach photo” and send, and I’ll approve the fix right away.' });
+    }
+    add('Evidence', 'Photo attached', 'ok');
+    if (o.days > p.warrantyDays) {
+      add('Policy', 'Delivered ' + o.days + ' days ago, outside the ' + p.warrantyDays + '-day warranty', 'stop');
+      return res({ outcome: 'escalated', action: 'Sent to a person: out of warranty',
+        msg: sorry + 'Thanks for the photo. This is past our standard warranty, so a team member will review it and reply within one business day.' });
+    }
+    add('Warranty', 'Delivered ' + daysAgo(o.days) + ', inside the ' + p.warrantyDays + '-day warranty', 'ok');
+    if (o.price > p.escalateAbove) return escalateHigh('your photo');
+    if (o.price < p.returnDefectiveAbove) {
+      add('Policy', 'Under ' + usd(p.returnDefectiveAbove) + ': replace and let the customer keep the faulty one', 'ok');
+      return res({ outcome: 'resolved', action: 'Replacement shipped, no return needed',
+        money: mon({ units: 1, ship: p.shipOut }, o.price),
+        msg: sorry + 'Thanks, that photo is clear. A replacement ' + o.item + ' ships today, and you can keep or recycle the faulty one. You’ll get tracking within 24 hours.' });
+    }
+    add('Policy', 'Over ' + usd(p.returnDefectiveAbove) + ': replace and collect the faulty unit for the supplier claim', 'ok');
+    return res({ outcome: 'resolved', action: 'Replacement shipped with return label',
+      money: mon({ units: 1, ship: p.shipOut, label: p.returnLabel, handling: p.handling, recovered: o.cogs * RECOVER.defective }, o.price),
+      msg: sorry + 'Thanks, that photo is clear. A replacement ' + o.item + ' ships today. A prepaid label for the faulty one is in your email.' });
+  }
+
+  if (eff === 'exchange' || eff === 'return') {
+    const inWindow = o.days <= p.returnWindowDays;
+    if (!inWindow) {
+      add('Window', 'Delivered ' + o.days + ' days ago, past the ' + p.returnWindowDays + '-day window', 'stop');
+      add('Policy', 'Decline the ' + (eff === 'return' ? 'return' : 'exchange') + ', offer ' + p.discountPct + '% off the next order', 'ok');
+      return res({ outcome: 'resolved', action: 'Declined, ' + p.discountPct + '% code offered',
+        money: mon({ discount: r2(o.price * p.discountPct / 100) }, o.price),
+        msg: sorry + 'Thanks for asking, ' + first + '. Our return window is ' + p.returnWindowDays + ' days and yours closed ' + (o.days - p.returnWindowDays) + ' days ago, so I can’t approve this one. I can give you ' + p.discountPct + '% off your next order. And if the item is damaged or faulty, tell me, because that’s covered for ' + p.warrantyDays + ' days.' });
+    }
+    add('Window', 'Delivered ' + daysAgo(o.days) + ', inside the ' + p.returnWindowDays + '-day window', 'ok');
+    if (o.price > p.escalateAbove) return escalateHigh('');
+
+    if (eff === 'exchange') {
+      add('Policy', 'Ship the new size first, free return label for the old one', 'ok');
+      const m = mon({ units: 1, ship: p.shipOut, label: p.returnLabel, handling: p.handling, recovered: o.cogs * RECOVER.exchange }, o.price);
+      const sizes = ['S', 'M', 'L', 'XL'];
+      const offers = sizes.map(s => ({
+        label: 'Size ' + s,
+        result: res({ outcome: 'resolved', action: 'Size ' + s + ' shipped, free return label', money: m,
+          trace: trace.concat([{ label: 'Customer chose', detail: 'Size ' + s, level: 'ok' }]),
+          msg: 'Done. Size ' + s + ' ships today and a free return label for the first one is in your email.' })
+      }));
+      return res({ outcome: 'waiting', action: 'Waiting for the customer to choose a size', offers: offers,
+        msg: sorry + 'No problem, ' + first + '. I can swap it for another size today, and the return label is free. Which size would you like?' });
+    }
+
+    if (o.price < p.keepBelow) {
+      add('Policy', 'Under ' + usd(p.keepBelow) + ': shipping it back costs more than it’s worth, so offer a partial refund to keep it', 'ok');
+      const partial = r2(o.price * p.keepItRefundPct / 100);
+      const full = r2(o.price - p.returnLabel);
+      const offers = [
+        { label: 'Keep it and take ' + usd(partial) + ' back',
+          result: res({ outcome: 'resolved', action: 'Partial refund, customer keeps the item', money: mon({ refund: partial }, o.price),
+            trace: trace.concat([{ label: 'Customer chose', detail: 'Partial refund, keeps the item', level: 'ok' }]),
+            msg: 'Done. ' + usd(partial) + ' is on its way back to your original payment method, and the ' + o.item + ' is yours to keep.' }) },
+        { label: 'I want a full refund instead',
+          result: res({ outcome: 'resolved', action: 'Refund after return, customer-paid label', money: mon({ refund: full, handling: p.handling, recovered: o.cogs * RECOVER.changeOfMind }, o.price),
+            trace: trace.concat([{ label: 'Customer chose', detail: 'Full refund by returning the item', level: 'ok' }]),
+            msg: 'Understood. Send it back with the label in your email. We’ll refund ' + usd(full) + ' (price less ' + usd(p.returnLabel) + ' return shipping) once it arrives.' }) }
+      ];
+      return res({ outcome: 'waiting', action: 'Waiting for the customer to choose', offers: offers,
+        msg: sorry + 'Sorry it wasn’t what you hoped for, ' + first + '. Since sending it back costs about as much as the item, I can refund ' + usd(partial) + ' right now and you keep it. Or you can return it for a refund.' });
+    }
+
+    add('Policy', 'Offer store credit with a ' + p.creditBonusPct + '% bonus and a free return label before a cash refund', 'ok');
+    const credit = r2(o.price * (1 + p.creditBonusPct / 100));
+    const full = r2(o.price - p.returnLabel);
+    const offers = [
+      { label: 'Take ' + usd(credit) + ' store credit',
+        result: res({ outcome: 'resolved', action: 'Store credit +' + p.creditBonusPct + '%, free return label',
+          money: mon({ credit: credit, label: p.returnLabel, handling: p.handling, recovered: o.cogs * RECOVER.changeOfMind }, o.price),
+          trace: trace.concat([{ label: 'Customer chose', detail: 'Store credit with bonus', level: 'ok' }]),
+          msg: 'Great. ' + usd(credit) + ' in store credit lands as soon as the item reaches us. A free return label is in your email.' }) },
+      { label: 'I’d rather have a refund',
+        result: res({ outcome: 'resolved', action: 'Refund after return, customer-paid label',
+          money: mon({ refund: full, handling: p.handling, recovered: o.cogs * RECOVER.changeOfMind }, o.price),
+          trace: trace.concat([{ label: 'Customer chose', detail: 'Cash refund by returning the item', level: 'ok' }]),
+          msg: 'Of course. Send it back with the label in your email. We’ll refund ' + usd(full) + ' (price less ' + usd(p.returnLabel) + ' return shipping) once it arrives.' }) }
+    ];
+    return res({ outcome: 'waiting', action: 'Waiting for the customer to choose', offers: offers,
+      msg: sorry + 'No problem, ' + first + '. You have two options: ' + usd(credit) + ' in store credit (that’s a ' + p.creditBonusPct + '% bonus, with a free return label), or a refund of ' + usd(full) + ' after the item comes back.' });
+  }
+
+  return res({ outcome: 'waiting', action: 'Asked a clarifying question', msg: 'Could you tell me a bit more?' });
+}
+//ENGINE_END
+
+(function () {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const OUTCOME = { resolved: 'Resolved by Settle', escalated: 'Sent to a person', waiting: 'Waiting' };
+  const LEVEL = { ok: 'Pass', warn: 'Check', stop: 'Stop' };
+  const PROOF = { photo: 'Photo at door', signed: 'Signed for', none: 'None on file' };
+
+  let policy = Object.assign({}, DEFAULT_POLICY);
+  let order = ORDERS[0];
+  let seq = 0;
+  let convo = newConvo();
+  let tickets = {};
+  let busy = false;
+  let photoNext = false;
+
+  function newConvo() { return { id: ++seq, log: [], claim: '', awaitingPhoto: false, hasPhoto: false, result: null, offers: null }; }
+
+  function greet() {
+    convo.log.push({ who: 'settle', text: 'Hi ' + order.customer.split(' ')[0] + ', I’m Settle, the support assistant for Northloop Outfitters. What can I help with on order #' + order.id + '?' });
+  }
+
+  function renderOrderCard() {
+    const status = order.status === 'transit' ? 'In transit, ' + order.late + ' days late' : 'Delivered ' + (order.days === 1 ? '1 day' : order.days + ' days') + ' ago';
+    $('order-card').innerHTML =
+      '<div><dt>Item</dt><dd>' + esc(order.item) + '</dd></div>' +
+      '<div><dt>Paid</dt><dd class="mono">' + usd(order.price) + '</dd></div>' +
+      '<div><dt>Status</dt><dd>' + esc(status) + '</dd></div>' +
+      '<div><dt>Delivery proof</dt><dd>' + esc(PROOF[order.proof]) + '</dd></div>' +
+      '<div><dt>Customer</dt><dd>' + esc(order.customer) + '</dd></div>' +
+      '<div><dt>Claims, 90 days</dt><dd class="mono">' + order.prior + '</dd></div>';
+  }
+
+  function renderLog() {
+    const log = $('log');
+    log.textContent = '';
+    convo.log.forEach(m => {
+      const d = document.createElement('div');
+      d.className = 'msg ' + m.who;
+      const p = document.createElement('p');
+      p.textContent = m.text;
+      d.appendChild(p);
+      if (m.photo) { const ph = document.createElement('span'); ph.className = 'photo'; ph.textContent = 'Photo attached'; d.appendChild(ph); }
+      log.appendChild(d);
+    });
+    if (busy) { const t = document.createElement('div'); t.className = 'msg typing'; t.textContent = 'Settle is checking the policy…'; log.appendChild(t); }
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function renderChips() {
+    const o = $('offers');
+    o.textContent = '';
+    if (convo.offers && !busy) {
+      const e = document.createElement('span'); e.className = 'eyebrow'; e.textContent = 'Customer replies'; o.appendChild(e);
+      convo.offers.forEach((off, i) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'chip offer'; b.textContent = off.label;
+        b.addEventListener('click', () => choose(i));
+        o.appendChild(b);
+      });
+    }
+    const s = $('samples');
+    s.textContent = '';
+    const e2 = document.createElement('span'); e2.className = 'eyebrow'; e2.textContent = 'Try'; s.appendChild(e2);
+    [order.sample, 'I’m going to dispute this with my bank.', 'This is ridiculous. Nothing is working.'].forEach(t => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.textContent = t;
+      b.addEventListener('click', () => { $('msg').value = t; $('msg').focus(); });
+      s.appendChild(b);
+    });
+  }
+
+  function renderCase() {
+    const r = convo.result;
+    const el = $('case');
+    if (!r) {
+      el.innerHTML = '<div class="empty">No message yet for order #' + esc(order.id) + '. Send a message or tap a suggestion under the chat, and the checks Settle runs will show up here.</div>';
+      return;
+    }
+    const checks = r.trace.map(t =>
+      '<li><span class="tag ' + t.level + '">' + LEVEL[t.level] + '</span><span class="lbl">' + esc(t.label) + '</span><span class="det">' + esc(t.detail) + '</span></li>').join('');
+    let money = '';
+    if (r.money) {
+      const mx = Math.max(r.money.baseline, r.money.cost, 1);
+      const lines = r.money.lines.map(l => '<dt>' + esc(l.label) + '</dt><dd>' + usd(l.amount) + '</dd>').join('');
+      money =
+        '<div class="compare">' +
+        '<div class="cmp-row"><span>Refund everything</span><span class="bar"><i class="base" style="width:' + (r.money.baseline / mx * 100) + '%"></i></span><span class="val">' + usd(r.money.baseline) + '</span></div>' +
+        '<div class="cmp-row"><span>Settle</span><span class="bar"><i class="settle" style="width:' + (Math.max(r.money.cost, 0) / mx * 100) + '%"></i></span><span class="val">' + usd(r.money.cost) + '</span></div>' +
+        '</div>' +
+        (lines ? '<dl class="lines">' + lines + '<dt class="total">Cost to the store</dt><dd class="total">' + usd(r.money.cost) + '</dd></dl>' : '') +
+        '<p class="note">Refunding everything is assumed to cost the full price with nothing recovered. Settle’s cost is cash out, shipping, replacement units and handling, minus stock that comes back.</p>';
+    } else if (r.outcome === 'escalated') {
+      money = '<p class="note">No money moves until a person decides. This case is not counted in the savings total.</p>';
+    } else {
+      money = '<p class="note">Nothing is counted in the savings total until the case is settled.</p>';
+    }
+    el.innerHTML =
+      '<div style="display:flex;flex-direction:column;gap:14px">' +
+      '<div class="case-head"><span class="mono">Case ' + convo.id + ' · order #' + esc(order.id) + '</span><span class="tag ' + r.outcome + '">' + OUTCOME[r.outcome] + '</span></div>' +
+      '<h3 class="decision">' + esc(r.action) + '</h3>' +
+      '<ol class="checks" aria-label="Checks Settle ran">' + checks + '</ol>' +
+      money +
+      '<p class="note">In this demo a keyword matcher reads the message. In production a language model reads it, while the policy checks above stay plain rules, so it can’t be talked into a refund.</p>' +
+      '</div>';
+  }
+
+  function renderLedger() {
+    const list = Object.keys(tickets).map(k => tickets[k]).sort((a, b) => b.id - a.id);
+    const done = list.filter(t => t.outcome === 'resolved');
+    const cost = done.reduce((s, t) => s + (t.cost || 0), 0);
+    const baseline = done.reduce((s, t) => s + (t.baseline || 0), 0);
+    const saved = baseline - cost;
+    const pct = baseline > 0 ? Math.round(saved / baseline * 100) : 0;
+    const esc2 = list.filter(t => t.outcome === 'escalated').length;
+    if (!list.length) {
+      $('ledger').innerHTML = '<div class="empty">No cases yet. Settled cases appear here with what they cost against refunding everything.</div>';
+      return;
+    }
+    const mx = Math.max(baseline, cost, 1);
+    const rows = list.map(t =>
+      '<tr><td class="mono">#' + esc(t.order) + '</td><td>' + esc(t.item) + '</td><td>' + esc(t.issue) + '</td><td>' + esc(t.action) + '</td>' +
+      '<td><span class="tag ' + t.outcome + '">' + OUTCOME[t.outcome] + '</span></td>' +
+      '<td class="num">' + (t.cost == null ? '–' : usd(t.cost)) + '</td><td class="num">' + (t.baseline == null ? '–' : usd(t.baseline)) + '</td></tr>').join('');
+    $('ledger').innerHTML =
+      '<div style="display:flex;flex-direction:column;gap:16px">' +
+      '<div class="stats">' +
+      '<div class="stat"><span class="n">' + list.length + '</span><span class="l">Cases opened</span></div>' +
+      '<div class="stat"><span class="n">' + done.length + '</span><span class="l">Resolved without a person</span></div>' +
+      '<div class="stat"><span class="n">' + esc2 + '</span><span class="l">Sent to a person</span></div>' +
+      '<div class="stat key"><span class="n">' + usd(saved) + '</span><span class="l">Saved' + (baseline > 0 ? ' (' + pct + '% less than refunding everything)' : '') + '</span></div>' +
+      '</div>' +
+      '<div class="compare">' +
+      '<div class="cmp-row"><span>Refund everything</span><span class="bar"><i class="base" style="width:' + (baseline / mx * 100) + '%"></i></span><span class="val">' + usd(baseline) + '</span></div>' +
+      '<div class="cmp-row"><span>With Settle</span><span class="bar"><i class="settle" style="width:' + (Math.max(cost, 0) / mx * 100) + '%"></i></span><span class="val">' + usd(cost) + '</span></div>' +
+      '</div>' +
+      '<div class="table-wrap"><table><thead><tr><th>Order</th><th>Item</th><th>Issue</th><th>Action</th><th>Status</th><th class="num">Settle cost</th><th class="num">Refund-all</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<p class="note">Totals count only cases Settle fully resolved. Waiting and escalated cases are listed but not counted. Costs use sample figures for shipping, handling and product cost.</p>' +
+      '</div>';
+  }
+
+  function renderAll() {
+    renderOrderCard(); renderLog(); renderChips(); renderCase(); renderLedger();
+    $('sendBtn').disabled = busy;
+    $('photoBtn').setAttribute('aria-pressed', String(photoNext));
+    $('photoBtn').textContent = photoNext ? 'Photo attached' : 'Attach photo';
+  }
+
+  function record(r) {
+    tickets[convo.id] = {
+      id: convo.id, order: order.id, item: order.item, issue: r.intent.label,
+      outcome: r.outcome, action: r.action,
+      cost: r.money ? r.money.cost : null, baseline: r.money ? r.money.baseline : null
+    };
+  }
+
+  function reply(r, instant) {
+    const go = () => {
+      busy = false;
+      convo.result = r;
+      convo.awaitingPhoto = !!r.needsPhoto;
+      convo.offers = r.offers || null;
+      convo.log.push({ who: 'settle', text: r.msg });
+      record(r);
+      renderAll();
+    };
+    if (instant) { go(); return; }
+    busy = true;
+    renderAll();
+    setTimeout(go, 550);
+  }
+
+  function send(text, photo, instant) {
+    text = text.trim();
+    if (!text || busy) return;
+    convo.log.push({ who: 'customer', text: text, photo: photo });
+    let claim = text;
+    if (convo.awaitingPhoto && photo) claim = convo.claim; else convo.claim = text;
+    if (photo) convo.hasPhoto = true;
+    convo.offers = null;
+    const r = evaluate(order, claim, { photo: convo.hasPhoto }, policy);
+    reply(r, instant);
+  }
+
+  function choose(i) {
+    if (busy || !convo.offers) return;
+    const off = convo.offers[i];
+    convo.offers = null;
+    convo.log.push({ who: 'customer', text: off.label });
+    reply(off.result, false);
+  }
+
+  function resetConvo() {
+    convo = newConvo();
+    busy = false;
+    photoNext = false;
+    greet();
+    renderAll();
+  }
+
+  function syncPolicyInputs() {
+    $('p-window').value = policy.returnWindowDays;
+    $('p-keep').value = policy.keepBelow;
+    $('p-esc').value = policy.escalateAbove;
+    $('p-bonus').value = policy.creditBonusPct;
+  }
+  function bindPolicy(id, key) {
+    $(id).addEventListener('input', e => {
+      const v = parseFloat(e.target.value);
+      if (!isNaN(v) && v >= 0) policy[key] = v;
+    });
+  }
+
+  const sel = $('order');
+  ORDERS.forEach((o, i) => {
+    const op = document.createElement('option');
+    op.value = i; op.textContent = '#' + o.id + ' · ' + o.item + ' · ' + usd(o.price);
+    sel.appendChild(op);
+  });
+  sel.addEventListener('change', () => { order = ORDERS[+sel.value]; resetConvo(); });
+  $('composer').addEventListener('submit', e => {
+    e.preventDefault();
+    const t = $('msg').value;
+    if (!t.trim()) return;
+    $('msg').value = '';
+    const ph = photoNext;
+    photoNext = false;
+    send(t, ph, false);
+  });
+  $('photoBtn').addEventListener('click', () => { photoNext = !photoNext; renderAll(); });
+  $('resetBtn').addEventListener('click', () => { tickets = {}; resetConvo(); });
+  bindPolicy('p-window', 'returnWindowDays');
+  bindPolicy('p-keep', 'keepBelow');
+  bindPolicy('p-esc', 'escalateAbove');
+  bindPolicy('p-bonus', 'creditBonusPct');
+
+  syncPolicyInputs();
+  greet();
+  send(order.sample, true, true);
+})();
+</script>
+
+</body></html>
